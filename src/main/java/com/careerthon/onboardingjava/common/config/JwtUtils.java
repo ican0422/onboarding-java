@@ -1,9 +1,7 @@
 package com.careerthon.onboardingjava.common.config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import com.careerthon.onboardingjava.domain.user.entity.UserRole;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
@@ -12,18 +10,22 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Optional;
 
 @Component
 @Slf4j
 public class JwtUtils {
     private  final SecretKey key;
+    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+
     private static final String BEARER = "Bearer ";
+    private static final long TOKEN_EXPIRATION_TIME = 5 * 60 * 1000L; // 60분 동안 사용
 
     // JWT 키 초기화
-    public JwtUtils(@Value("${jwt.secret.key}") String secret) {
+    public JwtUtils(@Value("${jwt.secret.key}") String secretKey) {
         // Base64 디코딩 추가
-        byte[] keyBytes = Base64.getDecoder().decode(secret);
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
 
         // 키 생성
         this.key = Keys.hmacShaKeyFor(keyBytes);
@@ -40,19 +42,36 @@ public class JwtUtils {
         return Optional.of(tokenHeader.substring(BEARER.length()));
     }
 
-    // 클래임 추출
-    public Optional<Claims> extractClaims(String token) {
+    // 토큰 유효성 검사
+    public boolean isTokenValid(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
+            Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseClaimsJws(token);
+            return true;
+        } catch (JwtException e) {
+            log.warn("잘못된 JWT 토큰입니다.: {}", e.getMessage());
+            return false;
+        }
+    }
 
+    // 클레임 추출
+    public Claims extractClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    // 토큰 유효성 검사 + 클레임 추출 통합 메서드
+    public Optional<Claims> validateAndExtractClaims(String token) {
+        try {
+            Claims claims = extractClaims(token);
             // 성공 로그
-            log.info("JWT Claims extracted successfully: {}", claims);
+            log.info("JWT 클레임 성공적으로 추출: {}", claims);
             return Optional.of(claims);
-        // 실패 로그
         } catch (ExpiredJwtException e) {
             log.warn("JWT 토큰 만료: {}", e.getMessage());
         } catch (SignatureException e) {
@@ -63,5 +82,23 @@ public class JwtUtils {
             log.error("JWT 클레임을 추출하는 동안 예상치 못한 오류 발생: {}", e.getMessage());
         }
         return Optional.empty();
+    }
+
+    // 토큰 생성
+    public String createToken(Long id, String username, String nickname, UserRole userRole) {
+        // 생성 시간
+        Date now = new Date();
+        // 만료시간
+        Date expiration = new Date(now.getTime() + TOKEN_EXPIRATION_TIME);
+
+        return Jwts.builder()
+                .setSubject(id.toString())               // 사용자 ID
+                .claim("userName", username)         // 사용자 이름
+                .claim("nickName", nickname)         // 닉네임
+                .claim("userRole", userRole)         // 권한
+                .setExpiration(expiration)              // 만료 시간
+                .setIssuedAt(now)                       // 발급 시간
+                .signWith(key, signatureAlgorithm)      // 서명 설정
+                .compact();                             // 문자열 반환
     }
 }

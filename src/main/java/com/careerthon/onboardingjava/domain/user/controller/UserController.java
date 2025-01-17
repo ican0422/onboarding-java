@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
     /**
-     * 회원가입 기능
+     * 회원가입
      * @param requestDto: username, password, nickname
      * @return username, nickname, authorities(UserRole)
      */
@@ -35,7 +35,7 @@ public class UserController {
      * @param requestDto: username, password
      * @return token
      */
-    @PostMapping("/login")
+    @PostMapping("/logins")
     public ResponseEntity<ApiResponse<UserSignResponseDto>> sign(@RequestBody UserSignRequestDto requestDto) {
         UserSignResponseDto user = userService.sign(requestDto);
         return ResponseEntity.ok(ApiResponse.success("로그인 성공", user));
