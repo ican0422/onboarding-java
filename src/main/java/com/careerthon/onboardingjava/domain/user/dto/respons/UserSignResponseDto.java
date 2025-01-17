@@ -4,5 +4,9 @@ import lombok.Getter;
 
 @Getter
 public class UserSignResponseDto {
-    private String token;
+    private final String token;
+
+    public UserSignResponseDto(String token) {
+        this.token = token;
+    }
 }
