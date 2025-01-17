@@ -1,11 +1,14 @@
 package com.careerthon.onboardingjava.common.config;
 
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
+import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class JwtUtilsTest {
@@ -36,5 +39,31 @@ public class JwtUtilsTest {
         //then
         assertNotNull(token);
         System.out.println("토큰: " + token);
+    }
+
+    @Test
+    public void 토큰_검증_테스트() {
+        // given
+        Long userId = Long.valueOf(USER_ID);
+        String username = USERNAME;
+        String nickname = NICKNAME;
+        UserRole userRole = USER_ROLE;
+        String token = jwtUtil.createToken(userId, username, nickname, userRole);
+
+        // when
+        Optional<Claims> claimsOptional = jwtUtil.validateAndExtractClaims(token);
+        Claims claims = claimsOptional.get();
+
+        UserRole actualUserRole = UserRole.valueOf(claims.get("userRole").toString());
+
+        // then
+        assertNotNull(claimsOptional.isPresent());
+        // Claim 값 검증
+        assertEquals(USER_ID, claims.getSubject());
+        assertEquals(username, claims.get("userName"));
+        assertEquals(nickname, claims.get("nickName"));
+        assertEquals(userRole, actualUserRole);
+
+        System.out.println("검증된 클레임" + claims);
     }
 }
