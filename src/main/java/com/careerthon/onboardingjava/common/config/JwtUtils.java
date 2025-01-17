@@ -1,5 +1,6 @@
 package com.careerthon.onboardingjava.common.config;
 
+import com.careerthon.onboardingjava.common.exception.JwtValidationResultException;
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -42,20 +43,6 @@ public class JwtUtils {
         return Optional.of(tokenHeader.substring(BEARER.length()));
     }
 
-    // 토큰 유효성 검사
-    public boolean isTokenValid(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (JwtException e) {
-            log.warn("잘못된 JWT 토큰입니다.: {}", e.getMessage());
-            return false;
-        }
-    }
-
     // 클레임 추출
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
@@ -73,15 +60,14 @@ public class JwtUtils {
             log.info("JWT 클레임 성공적으로 추출: {}", claims);
             return Optional.of(claims);
         } catch (ExpiredJwtException e) {
-            log.warn("JWT 토큰 만료: {}", e.getMessage());
+            throw new JwtValidationResultException("JWT 토큰 만료", e);
         } catch (SignatureException e) {
-            log.warn("JWT 토큰 서명이 일치하지 않습니다: {}", e.getMessage());
+            throw new JwtValidationResultException("JWT 토큰 서명이 일치하지 않습니다.", e);
         } catch (JwtException e) {
-            log.warn("JWT 토큰 구문 분석 실패: {}", e.getMessage());
+            throw new JwtValidationResultException("JWT 토큰 구문 분석 실패", e);
         } catch (Exception e) {
-            log.error("JWT 클레임을 추출하는 동안 예상치 못한 오류 발생: {}", e.getMessage());
+            throw new JwtValidationResultException("JWT 클레임을 추출하는 동안 예상치 못한 오류 발생", e);
         }
-        return Optional.empty();
     }
 
     // 토큰 생성
