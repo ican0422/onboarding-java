@@ -54,6 +54,8 @@ public class UserService {
 
         // 토큰 발행
         String token = jwtUtil.createToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
+        // 리프레시 토큰 발행
+        String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
 
         // 토큰 반환
         return new UserSignResponseDto(token);
