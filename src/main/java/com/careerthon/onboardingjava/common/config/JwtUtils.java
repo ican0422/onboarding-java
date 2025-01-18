@@ -22,6 +22,7 @@ public class JwtUtils {
 
     private static final String BEARER = "Bearer ";
     private static final long TOKEN_EXPIRATION_TIME = 5 * 60 * 1000L; // 60분 동안 사용
+    private static final long REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000L; // 14일 (2주)
 
     // JWT 키 초기화
     public JwtUtils(@Value("${jwt.secret.key}") String secretKey) {
@@ -60,13 +61,13 @@ public class JwtUtils {
             log.info("JWT 클레임 성공적으로 추출: {}", claims);
             return Optional.of(claims);
         } catch (ExpiredJwtException e) {
-            throw new JwtValidationResultException("JWT 토큰 만료", e);
+            throw new JwtValidationResultException("토큰 만료", e);
         } catch (SignatureException e) {
-            throw new JwtValidationResultException("JWT 토큰 서명이 일치하지 않습니다.", e);
+            throw new JwtValidationResultException("토큰 서명이 일치하지 않습니다.", e);
         } catch (JwtException e) {
-            throw new JwtValidationResultException("JWT 토큰 구문 분석 실패", e);
+            throw new JwtValidationResultException("토큰 구문 분석 실패", e);
         } catch (Exception e) {
-            throw new JwtValidationResultException("JWT 클레임을 추출하는 동안 예상치 못한 오류 발생", e);
+            throw new JwtValidationResultException("클레임을 추출하는 동안 예상치 못한 오류 발생", e);
         }
     }
 
@@ -76,6 +77,22 @@ public class JwtUtils {
         Date now = new Date();
         // 만료시간
         Date expiration = new Date(now.getTime() + TOKEN_EXPIRATION_TIME);
+
+        return Jwts.builder()
+                .setSubject(id.toString())               // 사용자 ID
+                .claim("userName", username)         // 사용자 이름
+                .claim("nickName", nickname)         // 닉네임
+                .claim("userRole", userRole)         // 권한
+                .setExpiration(expiration)              // 만료 시간
+                .setIssuedAt(now)                       // 발급 시간
+                .signWith(key, signatureAlgorithm)      // 서명 설정
+                .compact();                             // 문자열 반환
+    }
+
+    // 리프레시 토큰 생성
+    public String createRefreshToken(Long id, String username, String nickname, UserRole userRole) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + REFRESH_TOKEN_TIME);
 
         return Jwts.builder()
                 .setSubject(id.toString())               // 사용자 ID
