@@ -1,5 +1,6 @@
 package com.careerthon.onboardingjava.domain.user.service;
 
+import com.careerthon.onboardingjava.common.config.JwtUtils;
 import com.careerthon.onboardingjava.domain.user.dto.Authorities;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final JwtUtils jwtUtil;
 
     // 회원 가입
     @Transactional
@@ -51,7 +53,7 @@ public class UserService {
         }
 
         // 토큰 발행
-        String token = "임시 토큰";
+        String token = jwtUtil.createToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
 
         // 토큰 반환
         return new UserSignResponseDto(token);
