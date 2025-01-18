@@ -43,4 +43,12 @@ public class SecurityConfigTest {
                         .content("{\"username\": \"testuser\", \"password\": \"password123\", \"nickname\": \"testnickname\"}"))
                 .andExpect(status().isOk()); // 화이트리스트 경로는 인증 필요 없음
     }
+
+    @Test
+    public void 로그인_화이트리스트_테스트() throws Exception {
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\": \"testuser\", \"password\": \"password123\"}"))
+                .andExpect(status().isOk()); // 화이트리스트 경로는 인증 필요 없음
+    }
 }
