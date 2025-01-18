@@ -6,7 +6,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Base64;
+import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -56,6 +58,11 @@ public class JwtUtilsTest {
 
         UserRole actualUserRole = UserRole.valueOf(claims.get("userRole").toString());
 
+        // 만료 시간 계산
+        Date expiration = claims.getExpiration();
+        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+        long remainingMinutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis); // 남은 시간(분 단위)
+
         // then
         assertNotNull(claimsOptional.isPresent());
         // Claim 값 검증
@@ -65,5 +72,54 @@ public class JwtUtilsTest {
         assertEquals(userRole, actualUserRole);
 
         System.out.println("검증된 클레임" + claims);
+        System.out.println("토큰 만료까지 남은 일 수: " + remainingMinutes);
+    }
+
+    @Test
+    public void 리프레시_토큰_생성_테스트() {
+        // given
+        Long userId = Long.valueOf(USER_ID);
+        String username = USERNAME;
+        String nickname = NICKNAME;
+        UserRole userRole = USER_ROLE;
+
+        // when
+        String token = jwtUtil.createRefreshToken(userId, username, nickname, userRole);
+
+        //then
+        assertNotNull(token);
+        System.out.println("토큰: " + token);
+    }
+
+    @Test
+    public void 리프레시_토큰_검증_테스트() {
+        // given
+        Long userId = Long.valueOf(USER_ID);
+        String username = USERNAME;
+        String nickname = NICKNAME;
+        UserRole userRole = USER_ROLE;
+        String token = jwtUtil.createRefreshToken(userId, username, nickname, userRole);
+
+        // when
+        Optional<Claims> claimsOptional = jwtUtil.validateAndExtractClaims(token);
+        Claims claims = claimsOptional.get();
+
+        UserRole actualUserRole = UserRole.valueOf(claims.get("userRole").toString());
+
+        // 만료 시간 계산
+        Date expiration = claims.getExpiration();
+        long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+        long remainingDays = TimeUnit.MILLISECONDS.toDays(remainingMillis); // 남은 시간(일 단위)
+
+        // then
+        assertNotNull(claimsOptional.isPresent());
+        // Claim 값 검증
+        assertEquals(USER_ID, claims.getSubject());
+        assertEquals(username, claims.get("userName"));
+        assertEquals(nickname, claims.get("nickName"));
+        assertEquals(userRole, actualUserRole);
+
+        System.out.println("검증된 클레임" + claims);
+        System.out.println("토큰 만료까지 남은 일 수: " + remainingDays);
     }
 }
