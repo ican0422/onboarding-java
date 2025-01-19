@@ -20,6 +20,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -118,7 +119,7 @@ public class UserServiceTest {
         ReflectionTestUtils.setField(user, "role", userRole);
 
         // 회원 가입 되어 있는지 확인
-        given(userRepository.findByUsername(any())).willReturn(Optional.of(user));
+        given(userRepository.findByUsername(request.getUsername())).willReturn(Optional.of(user));
 
         // when
         UserSignResponseDto response = userService.sign(request);
@@ -126,5 +127,26 @@ public class UserServiceTest {
         // then
         assertNotNull(response);
         System.out.println(response.getToken());
+    }
+
+    @Test
+    public void 유저를_찾을_수_없는_경우_예외() {
+        // given
+        String username = "testUsername";
+        String password = "testPassword";
+
+        // dto 생성
+        UserSignRequestDto request = new UserSignRequestDto(username, password);
+
+        // 유저 네임을 찾을 수 없을 경우
+        given(userRepository.findByUsername(request.getUsername())).willReturn(Optional.empty());
+
+        // when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sign(request);
+        });
+
+        // then
+        assertEquals("회원 정보를 찾을 수 없습니다.", exception.getMessage());
     }
 }
