@@ -149,4 +149,36 @@ public class UserServiceTest {
         // then
         assertEquals("회원 정보를 찾을 수 없습니다.", exception.getMessage());
     }
+
+    @Test
+    public void 비밀번호_불일치_예외() {
+        // given
+        long userId = 1L;
+        String username = "testUsername";
+        String password = "testPassword";
+        String nickname = "testNickname";
+        UserRole userRole = UserRole.ROLE_USER;
+
+        // dto 생성
+        UserSignRequestDto request = new UserSignRequestDto(username, password);
+
+        // 유저 생성
+        User user = new User();
+        ReflectionTestUtils.setField(user, "id", userId);
+        ReflectionTestUtils.setField(user, "username", request.getUsername());
+        ReflectionTestUtils.setField(user, "password", "password");
+        ReflectionTestUtils.setField(user, "nickname", nickname);
+        ReflectionTestUtils.setField(user, "role", userRole);
+
+        // 회원 가입 되어 있는지 확인
+        given(userRepository.findByUsername(request.getUsername())).willReturn(Optional.of(user));
+
+        // when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.sign(request);
+        });
+
+        // then
+        assertEquals("잘못된 비밀번호 입니다.", exception.getMessage());
+    }
 }
