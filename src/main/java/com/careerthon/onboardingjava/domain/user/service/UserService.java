@@ -48,7 +48,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
 
         // 비밀번호 확인
-        if(user.getPassword().equals(requestDto.getPassword())) {
+        if(!user.getPassword().equals(requestDto.getPassword())) {
             throw new IllegalArgumentException("잘못된 비밀번호 입니다.");
         }
 
