@@ -1,18 +1,23 @@
 package com.careerthon.onboardingjava.common.domain.user.service;
 
+import com.careerthon.onboardingjava.common.config.JwtUtils;
+import com.careerthon.onboardingjava.domain.user.dto.request.UserSignRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
+import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignResponseDto;
 import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignupResponseDto;
 import com.careerthon.onboardingjava.domain.user.entity.User;
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import com.careerthon.onboardingjava.domain.user.repository.UserRepository;
 import com.careerthon.onboardingjava.domain.user.service.UserService;
-import com.sun.jdi.request.InvalidRequestStateException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +31,12 @@ public class UserServiceTest {
 
     @InjectMocks
     private UserService userService;
+
+    @BeforeEach
+    void setup() {
+        JwtUtils jwtUtil = new JwtUtils("dGhpc2lzYXZhbGlkYmFzZTY0ZW5jb2RlZFNlY3JldEtleQ==");
+        ReflectionTestUtils.setField(userService, "jwtUtil", jwtUtil);
+    }
 
     @Test
     public void 회원가입_성공() {
@@ -84,5 +95,36 @@ public class UserServiceTest {
 
         // then
         assertEquals("이미 가입된 회원입니다.", exception.getMessage());
+    }
+
+    @Test
+    public void 로그인_성공_테스트() {
+        // given
+        long userId = 1L;
+        String username = "testUsername";
+        String password = "testPassword";
+        String nickname = "testNickname";
+        UserRole userRole = UserRole.ROLE_USER;
+
+        // dto 생성
+        UserSignRequestDto request = new UserSignRequestDto(username, password);
+
+        // 유저 생성
+        User user = new User();
+        ReflectionTestUtils.setField(user, "id", userId);
+        ReflectionTestUtils.setField(user, "username", request.getUsername());
+        ReflectionTestUtils.setField(user, "password", request.getPassword());
+        ReflectionTestUtils.setField(user, "nickname", nickname);
+        ReflectionTestUtils.setField(user, "role", userRole);
+
+        // 회원 가입 되어 있는지 확인
+        given(userRepository.findByUsername(any())).willReturn(Optional.of(user));
+
+        // when
+        UserSignResponseDto response = userService.sign(request);
+
+        // then
+        assertNotNull(response);
+        System.out.println(response.getToken());
     }
 }
