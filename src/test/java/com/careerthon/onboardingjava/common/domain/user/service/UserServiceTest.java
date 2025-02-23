@@ -1,6 +1,7 @@
 package com.careerthon.onboardingjava.common.domain.user.service;
 
 import com.careerthon.onboardingjava.common.config.JwtUtils;
+import com.careerthon.onboardingjava.common.config.PasswordEncoder;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignResponseDto;
@@ -30,6 +31,9 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserService userService;
 
@@ -52,7 +56,7 @@ public class UserServiceTest {
 
         // 유저 만들기
         long userId = 1L;
-        User user = new User(request, UserRole.ROLE_USER);
+        User user = new User(request, password, UserRole.ROLE_USER);
         ReflectionTestUtils.setField(user, "id", userId);
 
         // 이미 가입 되어 있는지 확인
@@ -83,7 +87,7 @@ public class UserServiceTest {
 
         // 유저 만들기
         long userId = 1L;
-        User user = new User(request, UserRole.ROLE_USER);
+        User user = new User(request, password, UserRole.ROLE_USER);
         ReflectionTestUtils.setField(user, "id", userId);
 
         // 이미 가입 되어 있는지 확인
@@ -120,6 +124,8 @@ public class UserServiceTest {
 
         // 회원 가입 되어 있는지 확인
         given(userRepository.findByUsername(request.getUsername())).willReturn(Optional.of(user));
+        // 비밀번호 확인
+        given(passwordEncoder.verify(password, request.getPassword())).willReturn(true);
 
         // when
         UserSignResponseDto response = userService.sign(request);
