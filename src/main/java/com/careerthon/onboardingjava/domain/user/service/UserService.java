@@ -1,6 +1,7 @@
 package com.careerthon.onboardingjava.domain.user.service;
 
 import com.careerthon.onboardingjava.common.config.JwtUtils;
+import com.careerthon.onboardingjava.common.config.PasswordEncoder;
 import com.careerthon.onboardingjava.domain.user.dto.Authorities;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final JwtUtils jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     // 회원 가입
     @Transactional
@@ -27,8 +29,11 @@ public class UserService {
             throw new IllegalArgumentException("이미 가입된 회원입니다.");
         }
 
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+
         // 엔티티로 변환
-        User user = new User(requestDto, UserRole.ROLE_USER);
+        User user = new User(requestDto, encodedPassword, UserRole.ROLE_USER);
 
         // DB 저장
         User saveUser = userRepository.save(user);
@@ -48,7 +53,8 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
 
         // 비밀번호 확인
-        if(!user.getPassword().equals(requestDto.getPassword())) {
+        boolean verify = passwordEncoder.verify(requestDto.getPassword(), user.getPassword());
+        if(!verify) {
             throw new IllegalArgumentException("잘못된 비밀번호 입니다.");
         }
 

@@ -21,9 +21,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    public User(UserSignupRequestDto dto, UserRole role) {
+    public User(UserSignupRequestDto dto, String password, UserRole role) {
         this.username = dto.getUsername();
-        this.password = dto.getPassword();
+        this.password = password;
         this.nickname = dto.getNickname();
         this.role = role;
     }
