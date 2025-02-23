@@ -2,6 +2,7 @@ package com.careerthon.onboardingjava.common.domain.user.service;
 
 import com.careerthon.onboardingjava.common.config.JwtUtils;
 import com.careerthon.onboardingjava.common.config.PasswordEncoder;
+import com.careerthon.onboardingjava.common.config.PasswordEncoderTest;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignResponseDto;
