@@ -75,6 +75,6 @@ public class UserService {
                 TimeUnit.MILLISECONDS);
 
         // 토큰 반환
-        return new UserSignResponseDto(token);
+        return new UserSignResponseDto(token, refreshToken);
     }
 }
