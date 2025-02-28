@@ -53,9 +53,7 @@ public class JwtUtilsTest {
         String token = jwtUtil.createToken(userId, username, nickname, userRole);
 
         // when
-        Optional<Claims> claimsOptional = jwtUtil.validateAndExtractClaims(token);
-        Claims claims = claimsOptional.get();
-
+        Claims claims = jwtUtil.validateAndExtractClaims(token);
         UserRole actualUserRole = UserRole.valueOf(claims.get("userRole").toString());
 
         // 만료 시간 계산
@@ -64,7 +62,7 @@ public class JwtUtilsTest {
         long remainingMinutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis); // 남은 시간(분 단위)
 
         // then
-        assertNotNull(claimsOptional.isPresent());
+        assertNotNull(claims);
         // Claim 값 검증
         assertEquals(USER_ID, claims.getSubject());
         assertEquals(username, claims.get("userName"));
@@ -101,9 +99,7 @@ public class JwtUtilsTest {
         String token = jwtUtil.createRefreshToken(userId, username, nickname, userRole);
 
         // when
-        Optional<Claims> claimsOptional = jwtUtil.validateAndExtractClaims(token);
-        Claims claims = claimsOptional.get();
-
+        Claims claims = jwtUtil.validateAndExtractClaims(token);
         UserRole actualUserRole = UserRole.valueOf(claims.get("userRole").toString());
 
         // 만료 시간 계산
@@ -112,7 +108,7 @@ public class JwtUtilsTest {
         long remainingDays = TimeUnit.MILLISECONDS.toDays(remainingMillis); // 남은 시간(일 단위)
 
         // then
-        assertNotNull(claimsOptional.isPresent());
+        assertNotNull(claims);
         // Claim 값 검증
         assertEquals(USER_ID, claims.getSubject());
         assertEquals(username, claims.get("userName"));
