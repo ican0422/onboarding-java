@@ -55,6 +55,11 @@ public class JwtUtils {
 
     // 토큰 유효성 검사 + 클레임 추출 통합 메서드
     public Claims validateAndExtractClaims(String token) {
+        // 토큰이 비어 있을 경우
+        if (token == null || token.trim().isEmpty()) {
+            throw new JwtValidationResultException("토큰이 비어 있습니다.");
+        }
+
         try {
             Claims claims = extractClaims(token);
             // 성공 로그
@@ -83,6 +88,7 @@ public class JwtUtils {
                 .claim("userName", username)         // 사용자 이름
                 .claim("nickName", nickname)         // 닉네임
                 .claim("userRole", userRole)         // 권한
+                .claim("tokenType", "access")   // 토큰 타입 (엑세스 토큰)
                 .setExpiration(expiration)              // 만료 시간
                 .setIssuedAt(now)                       // 발급 시간
                 .signWith(key, signatureAlgorithm)      // 서명 설정
@@ -104,6 +110,7 @@ public class JwtUtils {
                 .claim("userName", username)         // 사용자 이름
                 .claim("nickName", nickname)         // 닉네임
                 .claim("userRole", userRole)         // 권한
+                .claim("tokenType", "refresh")   // 토큰 타입 (리프레쉬)
                 .setExpiration(expiration)              // 만료 시간
                 .setIssuedAt(now)                       // 발급 시간
                 .signWith(key, signatureAlgorithm)      // 서명 설정

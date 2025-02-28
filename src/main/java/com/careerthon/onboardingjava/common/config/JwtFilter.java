@@ -45,6 +45,12 @@ public class JwtFilter implements Filter {
             // 클레임 검증
             Claims claims = jwtUtil.validateAndExtractClaims(token);
 
+            // "tokenType" 검증 (엑세스 토큰인지 검증)
+            String tokenType = claims.get("tokenType", String.class);
+            if (!"access".equals(tokenType)) {
+                throw new JwtValidationResultException("액세스 토큰이 아닙니다.");
+            }
+
             log.info("JWT 검증 성공, 클레임: {}", claims);
             chain.doFilter(request, response);
         } catch (JwtValidationResultException e) {
@@ -59,11 +65,12 @@ public class JwtFilter implements Filter {
     // 필터 검사에서 걸린 경우
     private void handleForbiddenResponse(HttpServletResponse response, String message) throws IOException {
         // 403 에러
-        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-        // 메세지
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        // JSON 응답 형식 설정
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        // 클라이언트에게 에러 메시지 전송
         response.getWriter().write("{\"error\": \"" + message + "\"}");
-        // 클라이언트로 전송
         response.getWriter().flush();
     }
 }
