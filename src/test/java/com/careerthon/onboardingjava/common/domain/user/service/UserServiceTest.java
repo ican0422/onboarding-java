@@ -17,6 +17,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -34,6 +36,12 @@ public class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
     private UserService userService;
@@ -127,6 +135,8 @@ public class UserServiceTest {
         given(userRepository.findByUsername(request.getUsername())).willReturn(Optional.of(user));
         // 비밀번호 확인
         given(passwordEncoder.verify(password, request.getPassword())).willReturn(true);
+        // redis
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
 
         // when
         UserSignResponseDto response = userService.sign(request);
