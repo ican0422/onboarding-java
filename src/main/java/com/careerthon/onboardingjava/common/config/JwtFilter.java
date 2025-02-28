@@ -24,7 +24,7 @@ public class JwtFilter implements Filter {
 
         String url = httpRequest.getRequestURI();
 
-        // 토큰 검사 패스 (스프링 시큐리티 도입으로 주석 처리)
+        // 토큰 검사 패스
         if (url.equals("/api/users") || url.equals("/api/users/logins")) {
             chain.doFilter(request, response); // JWT 토큰 검사 제외
             return;
@@ -39,10 +39,11 @@ public class JwtFilter implements Filter {
 
         // 토큰 검증
         try {
+            // 토큰 추출
             String token = jwtUtil.substringToken(tokenHeader)
                     .orElseThrow(() -> new JwtValidationResultException("JWT 토큰이 비어 있습니다."));
-            Claims claims = jwtUtil.validateAndExtractClaims(token)
-                    .orElseThrow(() -> new JwtValidationResultException("Claims 추출 실패했습니다."));
+            // 클레임 검증
+            Claims claims = jwtUtil.validateAndExtractClaims(token);
 
             log.info("JWT 검증 성공, 클레임: {}", claims);
             chain.doFilter(request, response);

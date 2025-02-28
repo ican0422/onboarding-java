@@ -54,12 +54,12 @@ public class JwtUtils {
     }
 
     // 토큰 유효성 검사 + 클레임 추출 통합 메서드
-    public Optional<Claims> validateAndExtractClaims(String token) {
+    public Claims validateAndExtractClaims(String token) {
         try {
             Claims claims = extractClaims(token);
             // 성공 로그
             log.info("JWT 클레임 성공적으로 추출: {}", claims);
-            return Optional.of(claims);
+            return claims;
         } catch (ExpiredJwtException e) {
             throw new JwtValidationResultException("토큰 만료", e);
         } catch (SignatureException e) {
