@@ -11,8 +11,11 @@ import com.careerthon.onboardingjava.domain.user.entity.User;
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import com.careerthon.onboardingjava.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtUtils jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // 회원 가입
     @Transactional
@@ -62,6 +66,13 @@ public class UserService {
         String token = jwtUtil.createToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
         // 리프레시 토큰 발행
         String refreshToken = jwtUtil.createRefreshToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
+
+        // 리프레시 토큰 redis에 저장
+        redisTemplate.opsForValue().set(
+                "refresh_token:" + user.getId(),
+                refreshToken,
+                jwtUtil.getRefreshTokenExpirationTime(),
+                TimeUnit.MILLISECONDS);
 
         // 토큰 반환
         return new UserSignResponseDto(token);

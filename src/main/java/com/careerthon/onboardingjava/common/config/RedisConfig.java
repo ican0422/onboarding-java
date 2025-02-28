@@ -1,6 +1,7 @@
 package com.careerthon.onboardingjava.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -31,7 +32,7 @@ public class RedisConfig {
 
     // redis 연결
     @Bean
-    public RedisConnectionFactory redisConnectionDetails() {
+    public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(redisHost, redisPort);
     }
 

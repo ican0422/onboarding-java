@@ -89,6 +89,11 @@ public class JwtUtils {
                 .compact();                             // 문자열 반환
     }
 
+    // 리프레시 토큰 시간
+    public Long getRefreshTokenExpirationTime() {
+        return REFRESH_TOKEN_TIME;
+    }
+
     // 리프레시 토큰 생성
     public String createRefreshToken(Long id, String username, String nickname, UserRole userRole) {
         Date now = new Date();
