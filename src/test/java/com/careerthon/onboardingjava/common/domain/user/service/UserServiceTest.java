@@ -2,7 +2,6 @@ package com.careerthon.onboardingjava.common.domain.user.service;
 
 import com.careerthon.onboardingjava.common.config.JwtUtils;
 import com.careerthon.onboardingjava.common.config.PasswordEncoder;
-import com.careerthon.onboardingjava.common.config.PasswordEncoderTest;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
 import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignResponseDto;
@@ -11,6 +10,8 @@ import com.careerthon.onboardingjava.domain.user.entity.User;
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import com.careerthon.onboardingjava.domain.user.repository.UserRepository;
 import com.careerthon.onboardingjava.domain.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +44,9 @@ public class UserServiceTest {
 
     @Mock
     private ValueOperations<String, String> valueOperations;
+
+    @Mock
+    private HttpServletResponse responses; // HttpServletResponse 모킹 (쿠키 추가)
 
     @InjectMocks
     private UserService userService;
@@ -137,13 +142,17 @@ public class UserServiceTest {
         given(passwordEncoder.verify(password, request.getPassword())).willReturn(true);
         // redis
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        // 쿠키 저장 기능 모킹
+        doNothing().when(responses).addCookie(any(Cookie.class));
 
         // when
-        UserSignResponseDto response = userService.sign(request);
+        UserSignResponseDto response = userService.sign(request, responses);
 
         // then
         assertNotNull(response);
         System.out.println(response.getToken());
+        // 쿠키가 정상적으로 추가되었는지 검증
+        verify(responses, times(1)).addCookie(any(Cookie.class));
     }
 
     @Test
@@ -160,7 +169,7 @@ public class UserServiceTest {
 
         // when
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.sign(request);
+            userService.sign(request, responses);
         });
 
         // then
@@ -192,7 +201,7 @@ public class UserServiceTest {
 
         // when
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.sign(request);
+            userService.sign(request, responses);
         });
 
         // then
