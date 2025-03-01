@@ -6,6 +6,7 @@ import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDt
 import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignResponseDto;
 import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignupResponseDto;
 import com.careerthon.onboardingjava.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,8 +37,8 @@ public class UserController {
      * @return token
      */
     @PostMapping("/logins")
-    public ResponseEntity<ApiResponse<UserSignResponseDto>> sign(@RequestBody UserSignRequestDto requestDto) {
-        UserSignResponseDto user = userService.sign(requestDto);
+    public ResponseEntity<ApiResponse<UserSignResponseDto>> sign(@RequestBody UserSignRequestDto requestDto, HttpServletResponse response) {
+        UserSignResponseDto user = userService.sign(requestDto, response);
         return ResponseEntity.ok(ApiResponse.success("로그인 성공", user));
     }
 }

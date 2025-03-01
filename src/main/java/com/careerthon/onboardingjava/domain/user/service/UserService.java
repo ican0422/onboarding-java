@@ -10,6 +10,8 @@ import com.careerthon.onboardingjava.domain.user.dto.respons.UserSignupResponseD
 import com.careerthon.onboardingjava.domain.user.entity.User;
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import com.careerthon.onboardingjava.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // 회원 가입
+    /* 회원 가입 */
     @Transactional
     public UserSignupResponseDto signup(UserSignupRequestDto requestDto) {
         // 이미 가입했는지 확인
@@ -49,9 +51,9 @@ public class UserService {
         return new UserSignupResponseDto(saveUser, authorities);
     }
 
-    // 로그인
+    /* 로그인 */
     @Transactional(readOnly = true)
-    public UserSignResponseDto sign(UserSignRequestDto requestDto) {
+    public UserSignResponseDto sign(UserSignRequestDto requestDto, HttpServletResponse response) {
         // 회원 가입 되어 있는지 확인
         User user = userRepository.findByUsername(requestDto.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
@@ -74,7 +76,23 @@ public class UserService {
                 jwtUtil.getRefreshTokenExpirationTime(),
                 TimeUnit.MILLISECONDS);
 
+        // 리프레시 토큰 쿠키에 저장
+        int refreshTokenTime = Math.toIntExact(jwtUtil.getRefreshTokenExpirationTime());
+        Cookie refreshTokenCookie = seveRefreshTokenCookie(refreshToken, refreshTokenTime);
+        response.addCookie(refreshTokenCookie);  // 클라이언트에 전송
+
         // 토큰 반환
-        return new UserSignResponseDto(token, refreshToken);
+        return new UserSignResponseDto(token);
+    }
+
+    /* 리프레시 토큰 쿠키 저장 */
+    private Cookie seveRefreshTokenCookie(String refreshToken, int refreshTokenTime) {
+        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);               // XSS 공격 방지
+        refreshTokenCookie.setSecure(true);                 // HTTPS에서만 전송
+        refreshTokenCookie.setPath("/auth/tokens");         // 해당 경로에서만 사용 가능
+        refreshTokenCookie.setMaxAge(refreshTokenTime);     // 토큰 일수 int 변환
+
+        return refreshTokenCookie;
     }
 }
