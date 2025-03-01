@@ -24,7 +24,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)                 // 상태 비저장 세션 관리
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users", "/api/users/logins").permitAll()     // 화이트리스트 URL
+                        .requestMatchers("/api/users", "/api/users/logins", "/auth/tokens").permitAll()     // 화이트리스트 URL
                         .anyRequest().authenticated()                                           // 다른 모든 요청은 인증
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);        // 사용자 지정 JWT 필터 추가
