@@ -18,6 +18,9 @@ public class User {
     private String password;
     private String nickname;
 
+    @Column(nullable = true, unique = true)
+    private Long kakaoId;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
@@ -26,5 +29,9 @@ public class User {
         this.password = password;
         this.nickname = dto.getNickname();
         this.role = role;
+    }
+
+    public void kakaoUserId(Long kakaoId) {
+        this.kakaoId = kakaoId;
     }
 }
