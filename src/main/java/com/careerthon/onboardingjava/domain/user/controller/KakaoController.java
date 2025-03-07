@@ -20,6 +20,6 @@ public class KakaoController {
 
     @GetMapping("/auth/login/kakao/callback")
     public ResponseEntity<ApiResponse<?>> kakaoLogin(@RequestParam("code") String accessCode, HttpServletResponse httpServletResponse) {
-        User user = userService.kakaoLogin();
+        return null;
     }
 }
