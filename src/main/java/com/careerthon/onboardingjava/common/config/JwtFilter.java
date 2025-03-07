@@ -25,7 +25,12 @@ public class JwtFilter implements Filter {
         String url = httpRequest.getRequestURI();
 
         // 토큰 검사 패스
-        if (url.equals("/api/users") || url.equals("/api/users/logins") || url.equals("/auth/tokens")) {
+        if (
+                url.equals("/api/users")
+                || url.equals("/api/users/logins")
+                || url.equals("/auth/tokens")
+                || url.equals("/auth/login/kakao/callback")
+        ) {
             chain.doFilter(request, response); // JWT 토큰 검사 제외
             return;
         }
