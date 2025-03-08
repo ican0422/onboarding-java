@@ -3,6 +3,7 @@ package com.careerthon.onboardingjava.domain.user.entity;
 import com.careerthon.onboardingjava.domain.user.dto.request.UserSignupRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,14 +25,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    public User(UserSignupRequestDto dto, String password, UserRole role) {
-        this.username = dto.getUsername();
+    @Builder
+    public User(String username, String nickname, String password, UserRole role, Long kakaoId) {
+        this.username = username;
+        this.nickname = nickname;
         this.password = password;
-        this.nickname = dto.getNickname();
-        this.role = role;
-    }
-
-    public void kakaoUserId(Long kakaoId) {
         this.kakaoId = kakaoId;
+        this.role = role;
     }
 }
