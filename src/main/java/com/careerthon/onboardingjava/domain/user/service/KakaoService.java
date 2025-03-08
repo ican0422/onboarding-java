@@ -1,6 +1,6 @@
 package com.careerthon.onboardingjava.domain.user.service;
 
-import com.careerthon.onboardingjava.domain.user.dto.respons.KakaoUserDto;
+import com.careerthon.onboardingjava.domain.user.dto.respons.KakaoUserInfoDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Map;
 
 @Service
 public class KakaoService {
@@ -58,7 +56,7 @@ public class KakaoService {
     }
 
     /* 카카오 사용자 정보 요청 (닉네임만 가져오기) */
-    public KakaoUserDto getKakaoUser(String token) {
+    public KakaoUserInfoDto getKakaoUser(String token) {
         String url = "https://kapi.kakao.com/v2/user/me";
 
         HttpHeaders headers = new HttpHeaders();
@@ -74,7 +72,7 @@ public class KakaoService {
             Long id = rootNode.get("id").asLong();
             String nickname = rootNode.get("properties").get("nickname").asText();
 
-            return new KakaoUserDto(id, nickname);
+            return new KakaoUserInfoDto(id, nickname);
         } catch (Exception e) {
             throw new RuntimeException("카카오 API 요청 중 오류가 발생했습니다.", e);
         }
