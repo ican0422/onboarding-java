@@ -1,15 +1,23 @@
 package com.careerthon.onboardingjava.common.config;
 
 import com.careerthon.onboardingjava.common.exception.JwtValidationResultException;
+import com.careerthon.onboardingjava.domain.user.dto.AuthUser;
+import com.careerthon.onboardingjava.domain.user.dto.Authorities;
+import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
@@ -54,6 +62,25 @@ public class JwtFilter implements Filter {
             String tokenType = claims.get("tokenType", String.class);
             if (!"access".equals(tokenType)) {
                 throw new JwtValidationResultException("액세스 토큰이 아닙니다.");
+            }
+
+            // 사용자 정보 추출
+            Long userId = Long.parseLong(claims.getSubject());                              // userId 추출
+            UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class)); // userRole 추출
+
+            // 인증되지 않았을때만 작동
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                // 인증 객체 생성
+                AuthUser authUser = new AuthUser(userId, userRole);
+
+                // 권한 추출
+                Collection<? extends GrantedAuthority> authorities = authUser.getUserRole();
+
+                // Authentication 객체 생성
+                Authentication authentication = new JwtAuthenticationToken(authUser, null, authorities);
+
+                // SecurityContext에 인증 정보 설정
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
 
             log.info("JWT 검증 성공, 클레임: {}", claims);
