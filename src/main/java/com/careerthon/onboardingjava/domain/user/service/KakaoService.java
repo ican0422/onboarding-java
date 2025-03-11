@@ -18,8 +18,8 @@ public class KakaoService {
     private final String redirectUri;
 
     public KakaoService(
-            @Value("${kakao.client_id}") String clientId,
-            @Value("${kakao.redirect_uri}") String redirectUri,
+            @Value("${kakao.auth.client}") String clientId,
+            @Value("${kakao.auth.redirect}") String redirectUri,
             RestTemplateBuilder builder
     ) {
         this.clientId = clientId;
