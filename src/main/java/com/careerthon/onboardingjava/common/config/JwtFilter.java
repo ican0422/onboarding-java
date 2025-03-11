@@ -2,51 +2,51 @@ package com.careerthon.onboardingjava.common.config;
 
 import com.careerthon.onboardingjava.common.exception.JwtValidationResultException;
 import com.careerthon.onboardingjava.domain.user.dto.AuthUser;
-import com.careerthon.onboardingjava.domain.user.dto.Authorities;
 import com.careerthon.onboardingjava.domain.user.entity.UserRole;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class JwtFilter implements Filter {
+public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtil;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain
+    ) throws ServletException, IOException {
 
-        String url = httpRequest.getRequestURI();
+        String url = request.getRequestURI();
 
         // 토큰 검사 패스
         if (
                 url.equals("/api/users")
-                || url.equals("/api/users/logins")
-                || url.equals("/auth/tokens")
-                || url.equals("/auth/login/kakao/callback")
+                        || url.equals("/api/users/logins")
+                        || url.equals("/auth/tokens")
+                        || url.equals("/auth/login/kakao/callback")
         ) {
             chain.doFilter(request, response); // JWT 토큰 검사 제외
             return;
         }
 
         // Authorization 헤더에서 토큰 추출
-        String tokenHeader = httpRequest.getHeader("Authorization");
+        String tokenHeader = request.getHeader("Authorization");
         if (tokenHeader == null || !tokenHeader.startsWith("Bearer ")) {
-            handleForbiddenResponse(httpResponse, "JWT 토큰이 없습니다.");
+            handleForbiddenResponse(response, "JWT 토큰이 없습니다.");
             return;
         }
 
@@ -87,10 +87,10 @@ public class JwtFilter implements Filter {
             chain.doFilter(request, response);
         } catch (JwtValidationResultException e) {
             log.warn("JWT 검증 실패: {}", e.getMessage());
-            handleForbiddenResponse(httpResponse, e.getMessage());
+            handleForbiddenResponse(response, e.getMessage());
         } catch (Exception e) {
             log.error("JWT 필터 처리 중 오류 발생: {}", e.getMessage());
-            handleForbiddenResponse(httpResponse, "서버 내부 오류가 발생했습니다.");
+            handleForbiddenResponse(response, "서버 내부 오류가 발생했습니다.");
         }
     }
 
