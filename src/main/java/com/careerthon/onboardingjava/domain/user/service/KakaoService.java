@@ -14,16 +14,16 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class KakaoService {
     private final RestTemplate restTemplate;
-    private final String clientId;
-    private final String redirectUri;
+    private final String kakaoClientId;
+    private final String kakaoRedirectUri;
 
     public KakaoService(
-            @Value("${kakao.auth.client}") String clientId,
-            @Value("${kakao.auth.redirect}") String redirectUri,
+            @Value("${kakao.auth.client}") String kakaoClientId,
+            @Value("${kakao.auth.redirect}") String kakaoRedirectUri,
             RestTemplateBuilder builder
     ) {
-        this.clientId = clientId;
-        this.redirectUri = redirectUri;
+        this.kakaoClientId = kakaoClientId;
+        this.kakaoRedirectUri = kakaoRedirectUri;
         this.restTemplate = builder.build();
     }
 
@@ -36,8 +36,8 @@ public class KakaoService {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
-        params.add("client_id", clientId);
-        params.add("redirect_uri", redirectUri);
+        params.add("client_id", kakaoClientId);
+        params.add("redirect_uri", kakaoRedirectUri);
         params.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
